@@ -1,4 +1,4 @@
-name: Manual Build, Upload Artifact, and Deploy
+name: Manual Build And Upload Artifact
 
 on:
     workflow_dispatch:
@@ -9,9 +9,8 @@ on:
                 default: 'master'
 
 jobs:
-    build-and-deploy:
+    build:
         runs-on: ubuntu-latest
-        environment: Production
         steps:
             - name: Checkout
               uses: actions/checkout@master
@@ -47,7 +46,6 @@ jobs:
                   cp versions.json ./build/
                   cp .htaccess ./build/
                   ls build
-                  export DORIS_COMMIT=`git rev-parse HEAD`
 
             - name: Upload Build Artifact
               uses: actions/upload-artifact@v4
@@ -55,29 +53,3 @@ jobs:
                   name: website-build
                   path: build
                   retention-days: 7
-
-            - name: Deploy Website
-              if: ${{ github.event.inputs.branch == 'master' }}
-              uses: peaceiris/actions-gh-pages@v3
-              with:
-                  github_token: ${{ github.token }}
-                  publish_branch: asf-site
-                  force_orphan: true
-                  publish_dir: ./build
-                  destination_dir: ./
-                  user_name: 'github-actions[bot]'
-                  user_email: 'github-actions[bot]@users.noreply.github.com'
-                  commit_message: 'Automated deployment with doris branch ${{ github.event.inputs.branch }}@${{ env.DORIS_COMMIT }}'
-
-            - name: Deploy Branch
-              if: ${{ github.event.inputs.branch != 'master' }}
-              uses: peaceiris/actions-gh-pages@v3
-              with:
-                  github_token: ${{ github.token }}
-                  publish_branch: asf-site
-                  force_orphan: true
-                  publish_dir: ./build
-                  destination_dir: ${{ github.event.inputs.branch }}
-                  user_name: 'github-actions[bot]'
-                  user_email: 'github-actions[bot]@users.noreply.github.com'
-                  commit_message: 'Automated deployment with doris branch ${{ github.event.inputs.branch }}@${{ env.DORIS_COMMIT }}'
