@@ -1,4 +1,4 @@
-name: Manual Deploy And Upload To OSS
+name: Manual Build, Upload Artifact, and Deploy
 
 on:
     workflow_dispatch:
@@ -49,18 +49,12 @@ jobs:
                   ls build
                   export DORIS_COMMIT=`git rev-parse HEAD`
 
-            - name: Upload files to OSS
-              uses: ./.github/actions/aliyun-oss-website-action
+            - name: Upload Build Artifact
+              uses: actions/upload-artifact@v4
               with:
-                  accessKeyId: ${{ secrets.ALIYUN_ACCESS_KEY_ID }}
-                  accessKeySecret: ${{ secrets.ALIYUN_ACCESS_KEY_SECRET }}
-                  bucket: ${{ secrets.ALIYUN_OSS_BUCKET }}
-                  # use your own endpoint
-                  endpoint: ${{ secrets.ALIYUN_OSS_ENDPOINT }}
-                  folder: build
-                  onlyUpload: true
-                  otherCacheControl: 0
-                  skipSetting: true
+                  name: website-build
+                  path: build
+                  retention-days: 7
 
             - name: Deploy Website
               if: ${{ github.event.inputs.branch == 'master' }}
