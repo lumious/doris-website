@@ -1,4 +1,4 @@
-name: Manual Build And Upload Artifact
+name: Manual Build And Upload To OSS
 
 on:
     workflow_dispatch:
@@ -9,8 +9,9 @@ on:
                 default: 'master'
 
 jobs:
-    build:
+    build-and-deploy:
         runs-on: ubuntu-latest
+        environment: Production
         steps:
             - name: Checkout
               uses: actions/checkout@master
@@ -46,10 +47,17 @@ jobs:
                   cp versions.json ./build/
                   cp .htaccess ./build/
                   ls build
+                  export DORIS_COMMIT=`git rev-parse HEAD`
 
-            - name: Upload Build Artifact
-              uses: actions/upload-artifact@v4
+            - name: Upload files to OSS
+              uses: ./.github/actions/aliyun-oss-website-action
               with:
-                  name: website-build
-                  path: build
-                  retention-days: 7
+                  accessKeyId: ${{ secrets.ALIYUN_ACCESS_KEY_ID }}
+                  accessKeySecret: ${{ secrets.ALIYUN_ACCESS_KEY_SECRET }}
+                  bucket: ${{ secrets.ALIYUN_OSS_BUCKET }}
+                  # use your own endpoint
+                  endpoint: ${{ secrets.ALIYUN_OSS_ENDPOINT }}
+                  folder: build
+                  onlyUpload: true
+                  otherCacheControl: 0
+                  skipSetting: true
